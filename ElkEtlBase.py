@@ -1,0 +1,138 @@
+import datetime
+import json
+from abc import abstractmethod
+from elasticsearch_functions import create_index_pattern, check_or_create_index, create_space
+from elasticsearch.helpers import bulk
+
+from settings.settings_generic import body_settings_generic
+
+
+class ElkEtlBase:
+    """
+    Como usar esta classe:
+    1) Implementar o metodo create_query. Este metodo deve levar em conta os parametros self.limit e self.offset para fazer cargas parciais, carregando uma janela de dados.
+    2) Implementar o metodo load_results que deve extrair de alguma fonte os dados a serem carregados.
+    Este metodo deve levar em conta os parametros self.limit e self.offset para fazer cargas parciais, carregando uma janela de dados.
+    3) Implementar o metodo parse_results que faz qualquer tratamento necessário e retorna um campo deve valor único chamado "id" dentro do dicionário de cada registro
+    """
+
+    def __init__(self, job_description, limit=100000):
+        self.index = job_description['index-pattern']
+        self.query = None
+        self.connection = None
+        self.offset = 0
+        self.elk_settings = job_description['settings']
+        self.job_description = job_description
+        self.limit = limit
+        self.loaded = False
+        self.chunk_size = 500
+        self.inconsistencies = set([])
+        if 'mappings' in self.elk_settings:
+            self.elk_settings["mappings"]["properties"][job_description['date_field']] = {
+                    "type": "date",
+                    "format": job_description['kibana_date_format']
+                }
+        else:
+            self.elk_settings["mappings"] = {"properties": {
+                job_description['date_field']: {
+                    "type": "date",
+                    "format": job_description['kibana_date_format']
+                }}}
+
+    @abstractmethod
+    def connect(self):
+        pass
+
+    def gendata(self):
+        ans = self.load_results()
+        if not ans:
+            self.offset = -1
+            return
+        else:
+            self.offset += self.limit
+
+        if 'id' in ans[0]:
+            for a in ans:
+                doc = {"doc": a, "_id": a["id"], '_op_type': 'update', 'doc_as_upsert': True, '_index': self.index}
+                yield doc
+        else:
+            for a in ans:
+                doc = {"doc": a, '_index': self.index}
+                yield doc
+
+    def get_last_record(self, es):
+        if 'date_field' not in self.job_description or self.job_description['date_field'] is None:
+            return None
+        last_record_query = {
+            "sort": [
+                {self.job_description['date_field']: {"order": "desc"}},
+                "_score"
+            ],
+            "from": 0, "size": 1
+        }
+        resav = es.search(index=self.index, body=last_record_query)
+        result = {}
+        if resav['hits']['hits']:
+            result[self.job_description['date_field']] = resav['hits']['hits'][0]['_source'][self.job_description['date_field']]
+
+        return result
+
+    def get_from_date(self, es, date_field=None):
+        last_record = self.get_last_record(es)
+        if last_record:
+            if not date_field:
+                self.from_date = last_record[self.job_description['date_field']]
+            else:
+                self.from_date = last_record[date_field]
+        else:
+            self.from_date = None
+
+        return self.from_date
+
+    def check_or_create_index(self, elasticsearch_url, index=None):
+        if index:
+            existed_index = check_or_create_index(elasticsearch_url, index, json.dumps(self.elk_settings))
+        else:
+            existed_index = check_or_create_index(elasticsearch_url, self.index, json.dumps(self.elk_settings))
+        return existed_index
+
+    def create_index_pattern(self, existed_index, kibana_url, job_description=None):
+        if existed_index == "CREATED":
+            if job_description:
+                created_space = create_space(kibana_url, job_description['namespace'])
+                create_index_pattern(kibana_url, job_description['index-pattern'], job_description['namespace'], job_description['date_field'])
+            else:
+                created_space = create_space(kibana_url, self.job_description['namespace'])
+                create_index_pattern(kibana_url, self.job_description['index-pattern'], self.job_description['namespace'], self.job_description['date_field'])
+            return True
+        else:
+            return False
+
+    @abstractmethod
+    def parse_result(self, results):
+        pass
+
+    @abstractmethod
+    def load_results(self):
+        pass
+
+    @abstractmethod
+    def create_query(self, from_date=None, date_field=None):
+        pass
+
+    def report(self):
+        print(self.inconsistencies)
+
+    def run(self, es, es_url, priv_kibana_url):
+        self.connect()
+        existed_index = self.check_or_create_index(es_url)
+        if not existed_index:
+            return False
+        from_date = self.get_from_date(es)
+        self.create_query(from_date)
+        self.offset = 0
+        while self.offset >= 0:
+            bulk(es, self.gendata(), chunk_size=self.chunk_size)
+        # self.create_index_pattern(existed_index, priv_kibana_url)
+        self.report()
+
