@@ -5,9 +5,7 @@ from elasticsearch import Elasticsearch
 from settings.settings_generic import body_settings_generic
 
 
-DEBUG = os.environ.get('DEBUG') == "True"
 DEST_PATH = os.environ.get('DEST_PATH') or "."
-
 ES_HOST = os.environ.get('ES_HOST') or 'localhost'
 ES_PORT = os.environ.get('ES_PORT') or '9200'
 ES_USER = os.environ.get('ES_USER') or 'admin'
