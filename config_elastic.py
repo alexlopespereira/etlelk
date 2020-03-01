@@ -2,7 +2,7 @@
 import os
 
 from elasticsearch import Elasticsearch
-from settings.settings_generic import body_settings_generic
+from settings_generic import body_settings_generic
 
 
 DEST_PATH = os.environ.get('DEST_PATH') or "."

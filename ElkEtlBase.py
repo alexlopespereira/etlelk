@@ -1,10 +1,7 @@
-import datetime
 import json
 from abc import abstractmethod
 from elasticsearch_functions import create_index_pattern, check_or_create_index, create_space
 from elasticsearch.helpers import bulk
-
-from settings.settings_generic import body_settings_generic
 
 
 class ElkEtlBase:
