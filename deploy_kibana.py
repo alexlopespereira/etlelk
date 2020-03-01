@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 import requests
-from config_elastic import DEST_PATH, INDEXES, ES_PASSWORD, ES_USER
+from config_elastic import config
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 
 from elasticsearch_functions import create_index_pattern, create_space, get_object_id, get_objects_from_search
@@ -36,7 +36,7 @@ def uplaod_from_file(path, filename, url, namespace, src_index_pattern_id=None, 
         'kbn-xsrf': 'true',
         'Content-Type': multipart_data.content_type}
     params = (('overwrite', 'true'),)
-    session.auth = (ES_USER, ES_PASSWORD)
+    session.auth = (config['ES_USER'], config['ES_PASSWORD'])
     created_space = create_space(url, namespace)
     print(created_space)
     response = session.post(import_url, headers=headers, params=params, data=multipart_data)
@@ -59,13 +59,13 @@ def copy_save_objects(src_kib_url, dest_es_url, namespace, prefix, filename):
     """
     create_space(dest_es_url, namespace)
     objs = get_objects_from_search(src_kib_url, namespace, prefix)
-    file = DEST_PATH + "/" + filename
+    file = config['DEST_PATH'] + "/" + filename
     with open(file, "w") as text_file:
         for o in objs:
             jsonstr = json.dumps(o) + "\n"
             text_file.write(jsonstr)
 
-    return uplaod_from_file(DEST_PATH, filename, dest_es_url, namespace)
+    return uplaod_from_file(config['DEST_PATH'], filename, dest_es_url, namespace)
 
 
 def find_index_pattern_id(data):
@@ -86,7 +86,7 @@ def copy_all(src_kibana_url, dest_kibana_url):
     :param save_only: Caso True, apenas salva os arquivos no sistema de arquivos. Não copia para produção.
     :return:
     """
-    for j in INDEXES:
+    for j in config['INDEXES']:
         filename = "objects_{0}{1}.ndjson".format(j['prefix'], datetime.today().date())
         copy_save_objects(src_kibana_url, dest_kibana_url, j['namespace'], j['prefix'], filename)
 
@@ -97,7 +97,7 @@ def replace_id_upload_files(dest_kibana_url):
     :return:
     """
     path = "./saved_objects"
-    for j in INDEXES:
+    for j in config['INDEXES']:
         dest_index_pattern_id = get_object_id(dest_kibana_url, j['namespace'], "index-pattern", j['index-pattern'])
         if not dest_index_pattern_id:
             continue
@@ -117,7 +117,7 @@ def upload_files(dest_kibana_url):
     :return:
     """
     path = "./saved_objects"
-    for j in INDEXES:
+    for j in config['INDEXES']:
         filename = "objects_{0}{1}.ndjson".format(j['prefix'], "2020-01-17")
         uplaod_from_file(path, filename, dest_kibana_url, j['namespace'])
 
@@ -139,7 +139,7 @@ def is_dashboard_available(es_url, namespace, prefix):
         # ('sort_field', 'type'),
     )
     headers = {'Content-Type': 'application/json'}
-    session.auth = (ES_USER, ES_PASSWORD)
+    session.auth = (config['ES_USER'], config['ES_PASSWORD'])
     try:
         response = session.get(url, headers=headers, params=params)
     except Exception as e:

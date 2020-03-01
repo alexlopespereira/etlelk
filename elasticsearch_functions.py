@@ -1,15 +1,15 @@
 import requests
-from config_elastic import ES_USER, ES_PASSWORD, es
+from config_elastic import config #ES_USER, ES_PASSWORD, es
 
 session = requests.Session()
 
 
 def check_or_create_index(es_url, index_name, settings):
     url = es_url + "/" + index_name
-    session.auth = (ES_USER, ES_PASSWORD)
+    session.auth = (config['ES_USER'], config['ES_PASSWORD'])
     response = session.get(url, verify=False)
     if response.status_code == 401:
-        print("Not authorize user: {0}, pass: {1}".format(ES_USER, ES_PASSWORD))
+        print("Not authorize user: {0}, pass: {1}".format(config['ES_USER'], config['ES_PASSWORD']))
         return None
     response = response.json()
 
@@ -31,7 +31,7 @@ def check_or_create_index(es_url, index_name, settings):
 def create_index_pattern(dest_es_url, index_patter_name, namespace, date_field):
     headers = {'Accept': '*/*', 'kbn-xsrf': 'true', 'Content-Type': 'application/json'}
     data = '{"attributes":{"title":"' + index_patter_name + '","timeFieldName":"' + date_field + '"}}'
-    session.auth = (ES_USER, ES_PASSWORD)
+    session.auth = (config['ES_USER'], config['ES_PASSWORD'])
     response = session.post(dest_es_url + "/s/" + namespace + "/api/saved_objects/index-pattern", headers=headers, data=data)
     if response.status_code != 200:
         print("error creating index {0} on {1}".format(index_patter_name, dest_es_url))
@@ -41,7 +41,7 @@ def create_index_pattern(dest_es_url, index_patter_name, namespace, date_field):
 def create_space(url, namespace):
     headers = {'kbn-xsrf': 'true', 'Content-Type': 'application/json'}
     data = '{"id": "' + namespace + '", "name": "' + namespace + '", "initials": "' + namespace.upper()[0:2] + '", "disabledFeatures":[]}'
-    session.auth = (ES_USER, ES_PASSWORD)
+    session.auth = (config['ES_USER'], config['ES_PASSWORD'])
     response = session.post(url + '/api/spaces/space', headers=headers, data=data)
     return response == 200
 
@@ -53,10 +53,10 @@ def get_object_id(kib_url, namespace, type, name):
         ('search_fields', 'title'),
         ('search', name),
     )
-    session.auth = (ES_USER, ES_PASSWORD)
+    session.auth = (config['ES_USER'], config['ES_PASSWORD'])
     response = session.get(url, params=params)
     if response.status_code != 200:
-        print("{0}, {1}, {2}, {3}".format(response.status_code, ES_USER, ES_PASSWORD, url))
+        print("{0}, {1}, {2}, {3}".format(response.status_code, config['ES_USER'], config['ES_PASSWORD'], url))
         return None
 
     response_json = response.json()
@@ -76,7 +76,7 @@ def get_objects_from_search(es_url, namespace, prefix):
         ('sort_field', 'type'),
     )
     headers = {'Content-Type': 'application/json'}
-    session.auth = (ES_USER, ES_PASSWORD)
+    session.auth = (config['ES_USER'], config['ES_PASSWORD'])
     response = session.get(url, headers=headers, params=params)
     response = response.json()
     return response['saved_objects']
@@ -88,7 +88,7 @@ def get_index_pattern(url, namespace, id):
         'Content-Type': 'application/json'
     }
     data = '[{"id":"' + str(id) + '","type":"index-pattern"}]'
-    session.auth = (ES_USER, ES_PASSWORD)
+    session.auth = (config['ES_USER'], config['ES_PASSWORD'])
     response = session.post('{0}/s/{1}/api/saved_objects/_bulk_get'.format(url, namespace), headers=headers, data=data)
     return response.json()
 
