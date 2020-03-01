@@ -21,7 +21,8 @@ def check_or_create_index(es_url, index_name, settings):
             data = '{"index.max_result_window" : "20000"}'
             response = session.put(es_url + '/_settings', headers=headers, data=data)
         else:
-            return None
+            print(response.text)
+            raise ValueError
 
         return "CREATED"
     else:
