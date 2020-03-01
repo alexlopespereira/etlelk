@@ -14,7 +14,7 @@ config['ES_PASSWORD'] = os.environ.get('ES_PASSWORD') or 'pass'
 config['ES_USE_SSL'] = os.environ.get('ES_USE_SSL') == "True"
 config['ES_SERVICOS_INDEX'] = os.environ.get('ES_SERVICOS_INDEX') or 'servicos'
 config['ES_INDEX2'] = os.environ.get('ES_INDEX2') or 'index2'
-config['DEST_KIBANA_URL'] = os.environ.get('DEST_KIBANA_URL') or 'localhost:5601'
+# config['DEST_KIBANA_URL'] = os.environ.get('DEST_KIBANA_URL') or 'localhost:5601'
 
 ES_INDEX2 = os.environ.get('ES_INDEX2') or 'index2'
 
