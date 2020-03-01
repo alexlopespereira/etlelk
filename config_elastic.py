@@ -13,6 +13,15 @@ ES_PASSWORD = os.environ.get('ES_PASSWORD') or 'pass'
 ES_USE_SSL = os.environ.get('ES_USE_SSL') == "True"
 ES_SERVICOS_INDEX = os.environ.get('ES_SERVICOS_INDEX') or 'servicos'
 ES_INDEX2 = os.environ.get('ES_INDEX2') or 'index2'
+DEST_KIBANA_URL = os.environ.get('DEST_KIBANA_URL') or 'localhost:5601'
+
+ES_INDEX2 = os.environ.get('ES_INDEX2') or 'index2'
+
+if ES_USE_SSL:
+    ES_URL = "https://{0}:{1}".format(ES_HOST, ES_PORT)
+else:
+    ES_URL = "http://{0}:{1}".format(ES_HOST, ES_PORT)
+
 
 job_servicos = {"index-pattern": ES_SERVICOS_INDEX, "settings": body_settings_generic, "prefix": "SERVICOS__", "namespace": "servicos", "date_field": "date", "description": "Servicos", "module_name": "elk.ElkEtlApiServicos", "class_name": "ElkEtlApiServicos", "kibana_date_format": "yyyy-MM-dd HH:mm:ss"}
 # job2 = {"control_id": "1574951280225", "index-pattern": ES_INDEX2, "settings": body_settings_generic, "prefix": "INDEX2__", "namespace": "test", "date_field": "date", "description": "Index 2", "module_name": "elk.ElkEtlApiServicos", "class_name": "ElkEtlApiServicos", "kibana_date_format": "yyyy-MM-dd"}

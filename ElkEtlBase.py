@@ -120,7 +120,7 @@ class ElkEtlBase:
     def report(self):
         print(self.inconsistencies)
 
-    def run(self, es, es_url, priv_kibana_url):
+    def run(self, es, es_url):
         self.connect()
         existed_index = self.check_or_create_index(es_url)
         if not existed_index:
@@ -130,6 +130,5 @@ class ElkEtlBase:
         self.offset = 0
         while self.offset >= 0:
             bulk(es, self.gendata(), chunk_size=self.chunk_size)
-        # self.create_index_pattern(existed_index, priv_kibana_url)
         self.report()
 
