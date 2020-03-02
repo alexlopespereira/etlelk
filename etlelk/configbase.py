@@ -1,7 +1,6 @@
 import os
-from collections import defaultdict
 from elasticsearch import Elasticsearch
-from settings_generic import body_settings_generic
+from etlelk.settings_generic import body_settings_generic
 
 
 class ConfigBase:

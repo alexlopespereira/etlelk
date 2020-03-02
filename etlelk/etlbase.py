@@ -2,7 +2,7 @@ import json
 from abc import abstractmethod
 from elasticsearch.helpers import bulk
 
-from kibanafunctions import KibanaFunctions
+from etlelk.kibanafunctions import KibanaFunctions
 
 
 class EtlBase:

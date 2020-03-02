@@ -5,7 +5,7 @@ import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 from pathlib import Path
 
-from elasticsearchfunctions import ElasticsearchFunctions # import create_index_pattern, create_space, get_object_id, get_objects_from_search
+from etlelk.elasticsearchfunctions import ElasticsearchFunctions # import create_index_pattern, create_space, get_object_id, get_objects_from_search
 
 
 
