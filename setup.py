@@ -1,25 +1,25 @@
 from distutils.core import setup
 
-with open("README.md", "r") as fh:
-    long_description = fh.read()
-
 setup(
     name="etlelk",
     packages=['etlelk'],
-    version="0.0.6",
+    version="0.0.7",
+    license="GNU Lesser General Public License v3.0",
+    description="A small example package",
     author="Alex Lopes Pereira",
     author_email="alexlopespereira@gmail.com",
-    description="A small example package",
-    long_description=long_description,
-    long_description_content_type="text/markdown",
     url="https://github.com/alexlopespereira/etl_elk",
-    download_url="https://github.com/alexlopespereira/etl_elk/archive/0.0.6.tar.gz",
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-        "Operating System :: OS Independent",
-    ],
+    download_url="https://github.com/alexlopespereira/etl_elk/archive/0.0.7.tar.gz",
     keywords=['elasticsearch', 'ETL'],
+    classifiers=[
+        'Development Status :: 3 - Alpha',
+        'Intended Audience :: Developers',
+        'Topic :: Software Development :: ETL',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+    ],
     install_requires=[
         'bleach==3.1.1',
         'certifi==2019.11.28',
@@ -46,5 +46,4 @@ setup(
         'webencodings==0.5.1',
         'zipp==3.0.0'
       ],
-    python_requires='>=3.6',
 )
