@@ -1,18 +1,19 @@
-import setuptools
+from distutils.core import setup
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-setuptools.setup(
+setup(
     name="etlelk",
-    version="0.0.2",
+    packages=['etlelk'],
+    version="0.0.3",
     author="Alex Lopes Pereira",
     author_email="alexlopespereira@gmail.com",
     description="A small example package",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/alexlopespereira/etl_elk",
-    packages=setuptools.find_packages(),
+    download_url="https://github.com/alexlopespereira/etl_elk/archive/0.0.3.tar.gz",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
