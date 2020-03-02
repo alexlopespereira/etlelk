@@ -5,7 +5,7 @@ from elasticsearch.helpers import bulk
 from kibanafunctions import KibanaFunctions
 
 
-class ElkEtlBase:
+class EtlBase:
     """
     Como usar esta classe:
     1) Implementar o metodo create_query. Este metodo deve levar em conta os parametros self.limit e self.offset para fazer cargas parciais, carregando uma janela de dados.

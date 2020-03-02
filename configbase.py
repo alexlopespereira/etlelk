@@ -4,7 +4,7 @@ from elasticsearch import Elasticsearch
 from settings_generic import body_settings_generic
 
 
-class Config:
+class ConfigBase:
     DEST_PATH = os.environ.get('DEST_PATH') or "."
     KIBANA_HOST = os.environ.get('ES_HOST') or 'localhost'
     KIBANA_PORT = os.environ.get('ES_PORT') or '5601'
