@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="etlelk",
-    version="0.0.1",
+    version="0.0.2",
     author="Alex Lopes Pereira",
     author_email="alexlopespereira@gmail.com",
     description="A small example package",
