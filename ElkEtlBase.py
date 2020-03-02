@@ -30,11 +30,12 @@ class ElkEtlBase:
                     "format": job_description['kibana_date_format']
                 }
         else:
-            self.elk_settings["mappings"] = {"properties": {
-                job_description['date_field']: {
-                    "type": "date",
-                    "format": job_description['kibana_date_format']
-                }}}
+            if 'date_field' in job_description:
+                self.elk_settings["mappings"] = {"properties": {
+                    job_description['date_field']: {
+                        "type": "date",
+                        "format": job_description['kibana_date_format']
+                    }}}
 
     @abstractmethod
     def connect(self):
@@ -53,8 +54,8 @@ class ElkEtlBase:
                 doc = {"doc": a, "_id": a["id"], '_op_type': 'update', 'doc_as_upsert': True, '_index': self.index}
                 yield doc
         else:
-            for a in ans:
-                doc = {"doc": a, '_index': self.index}
+            for doc in ans:
+                doc['_index'] = self.index
                 yield doc
 
     def get_last_record(self, es):

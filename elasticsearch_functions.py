@@ -113,3 +113,7 @@ def delete_from_day(esc, index, from_day):
                 }''' % (from_day)
     result = esc.delete_by_query(index, query)
     return result
+
+
+def delete_index(esc, index):
+    esc.indices.delete(index=index, ignore=[400, 404])
