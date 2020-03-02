@@ -1,19 +1,18 @@
 import requests
 
-# from config_elastic import config #ES_USER, ES_PASSWORD, es
-
-session = requests.Session()
 
 
 class ElasticsearchFunctions:
 
     def __init__(self, config):
         self.config = config
+        self.session = requests.Session()
+
 
     def check_or_create_index(self, es_url, index_name, settings):
         url = es_url + "/" + index_name
-        session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
-        response = session.get(url, verify=False)
+        self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
+        response = self.session.get(url, verify=False)
         if response.status_code == 401:
             print("Not authorize user: {0}, pass: {1}".format(self.config.ES_USER, self.config.ES_PASSWORD))
             return None
@@ -21,11 +20,11 @@ class ElasticsearchFunctions:
 
         if 'error' in response:
             headers = {'Content-Type': 'application/json'}
-            response = session.put(url, headers=headers, data=settings)
+            response = self.session.put(url, headers=headers, data=settings)
 
             if response.status_code == 200:
                 data = '{"index.max_result_window" : "20000"}'
-                response = session.put(es_url + '/_settings', headers=headers, data=data)
+                response = self.session.put(es_url + '/_settings', headers=headers, data=data)
             else:
                 print(response.text)
                 raise ValueError
@@ -37,13 +36,13 @@ class ElasticsearchFunctions:
     def create_index_pattern(self, dest_es_url, index_patter_name, namespace, date_field):
         headers = {'Accept': '*/*', 'kbn-xsrf': 'true', 'Content-Type': 'application/json'}
         data = '{"attributes":{"title":"' + index_patter_name + '","timeFieldName":"' + date_field + '"}}'
-        session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
+        self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
         if namespace:
             post_url = dest_es_url + "/s/" + namespace + "/api/saved_objects/index-pattern"
         else:
             post_url = dest_es_url + "/api/saved_objects/index-pattern"
 
-        response = session.post(post_url, headers=headers, data=data)
+        response = self.session.post(post_url, headers=headers, data=data)
         if response.status_code != 200:
             print("error creating index {0} on {1}".format(index_patter_name, dest_es_url))
             return
@@ -51,8 +50,8 @@ class ElasticsearchFunctions:
     def create_space(self, url, namespace):
         headers = {'kbn-xsrf': 'true', 'Content-Type': 'application/json'}
         data = '{"id": "' + namespace + '", "name": "' + namespace + '", "initials": "' + namespace.upper()[0:2] + '", "disabledFeatures":[]}'
-        session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
-        response = session.post(url + '/api/spaces/space', headers=headers, data=data)
+        self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
+        response = self.session.post(url + '/api/spaces/space', headers=headers, data=data)
         return response == 200
 
     def get_object_id(self, kib_url, namespace, type, name):
@@ -66,8 +65,8 @@ class ElasticsearchFunctions:
             ('search_fields', 'title'),
             ('search', name),
         )
-        session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
-        response = session.get(url, params=params)
+        self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
+        response = self.session.get(url, params=params)
         if response.status_code != 200:
             print("{0}, {1}, {2}, {3}".format(response.status_code, self.config.ES_USER, self.config.ES_PASSWORD, url))
             return None
@@ -91,8 +90,8 @@ class ElasticsearchFunctions:
             ('sort_field', 'type'),
         )
         headers = {'Content-Type': 'application/json'}
-        session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
-        response = session.get(url, headers=headers, params=params)
+        self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
+        response = self.session.get(url, headers=headers, params=params)
         response = response.json()
         return response['saved_objects']
 
@@ -102,13 +101,13 @@ class ElasticsearchFunctions:
             'Content-Type': 'application/json'
         }
         data = '[{"id":"' + str(id) + '","type":"index-pattern"}]'
-        session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
+        self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
         if namespace:
             bulk_url = '{0}/s/{1}/api/saved_objects/_bulk_get'.format(url, namespace)
         else:
             bulk_url = '{0}/api/saved_objects/_bulk_get'.format(url)
 
-        response = session.post(bulk_url, headers=headers, data=data)
+        response = self.session.post(bulk_url, headers=headers, data=data)
         return response.json()
 
     def check_index_not_empty(self, index, esc):

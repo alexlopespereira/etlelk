@@ -1,6 +1,5 @@
 import json
 from abc import abstractmethod
-from elasticsearchfunctions import ElasticsearchFunctions
 from elasticsearch.helpers import bulk
 
 from kibanafunctions import KibanaFunctions

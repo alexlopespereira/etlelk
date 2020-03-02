@@ -7,7 +7,6 @@ from pathlib import Path
 
 from elasticsearchfunctions import ElasticsearchFunctions # import create_index_pattern, create_space, get_object_id, get_objects_from_search
 
-session = requests.Session()
 
 
 class KibanaFunctions:
@@ -15,6 +14,8 @@ class KibanaFunctions:
     def __init__(self, config):
         self.config = config
         self.els = ElasticsearchFunctions(config)
+        self.session = requests.Session()
+
 
     def uplaod_from_file(self, file, url, namespace, src_index_pattern_id=None, dest_index_pattern_id=None):
         """
@@ -42,7 +43,7 @@ class KibanaFunctions:
             'kbn-xsrf': 'true',
             'Content-Type': multipart_data.content_type}
         params = (('overwrite', 'true'),)
-        session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
+        self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
         if namespace:
             created_space = self.els.create_space(url, namespace)
             print(created_space)
@@ -50,7 +51,7 @@ class KibanaFunctions:
         else:
             import_url = url + '/api/saved_objects/_import'
 
-        response = session.post(import_url, headers=headers, params=params, data=multipart_data)
+        response = self.session.post(import_url, headers=headers, params=params, data=multipart_data)
         if 'error' in response.text:
             raise ImportError
         return True
@@ -139,9 +140,9 @@ class KibanaFunctions:
             # ('sort_field', 'type'),
         )
         headers = {'Content-Type': 'application/json'}
-        session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
+        self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
         try:
-            response = session.get(url, headers=headers, params=params)
+            response = self.session.get(url, headers=headers, params=params)
         except Exception as e:
             print(e)
             pass
