@@ -1,7 +1,9 @@
 import json
 from abc import abstractmethod
-from elasticsearch_functions import create_index_pattern, check_or_create_index, create_space
+from elasticsearchfunctions import ElasticsearchFunctions
 from elasticsearch.helpers import bulk
+
+from kibanafunctions import KibanaFunctions
 
 
 class ElkEtlBase:
@@ -13,8 +15,8 @@ class ElkEtlBase:
     3) Implementar o metodo parse_results que faz qualquer tratamento necessário e retorna um campo deve valor único chamado "id" dentro do dicionário de cada registro
     """
 
-    def __init__(self, job_description, limit=100000):
-        self.index = job_description['index-pattern']
+    def __init__(self, config, job_description, limit=100000):
+        self.index = job_description['index']
         self.query = None
         self.connection = None
         self.offset = 0
@@ -24,6 +26,7 @@ class ElkEtlBase:
         self.loaded = False
         self.chunk_size = 500
         self.inconsistencies = set([])
+        self.kf = KibanaFunctions(config)
         if 'mappings' in self.elk_settings:
             self.elk_settings["mappings"]["properties"][job_description['date_field']] = {
                     "type": "date",
@@ -89,19 +92,19 @@ class ElkEtlBase:
 
     def check_or_create_index(self, elasticsearch_url, index=None):
         if index:
-            existed_index = check_or_create_index(elasticsearch_url, index, json.dumps(self.elk_settings))
+            existed_index = self.kf.els.check_or_create_index(elasticsearch_url, index, json.dumps(self.elk_settings))
         else:
-            existed_index = check_or_create_index(elasticsearch_url, self.index, json.dumps(self.elk_settings))
+            existed_index = self.kf.els.check_or_create_index(elasticsearch_url, self.index, json.dumps(self.elk_settings))
         return existed_index
 
     def create_index_pattern(self, existed_index, kibana_url, job_description=None):
         if existed_index == "CREATED":
             if job_description:
-                created_space = create_space(kibana_url, job_description['namespace'])
-                create_index_pattern(kibana_url, job_description['index-pattern'], job_description['namespace'], job_description['date_field'])
+                created_space = self.kf.els.create_space(kibana_url, job_description['namespace'])
+                self.kf.els.create_index_pattern(kibana_url, job_description['index-pattern'], job_description['namespace'], job_description['date_field'])
             else:
-                created_space = create_space(kibana_url, self.job_description['namespace'])
-                create_index_pattern(kibana_url, self.job_description['index-pattern'], self.job_description['namespace'], self.job_description['date_field'])
+                created_space = self.kf.els.create_space(kibana_url, self.job_description['namespace'])
+                self.kf.els.create_index_pattern(kibana_url, self.job_description['index-pattern'], self.job_description['namespace'], self.job_description['date_field'])
             return True
         else:
             return False

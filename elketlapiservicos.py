@@ -1,5 +1,5 @@
 import requests
-from ElkEtlBase import ElkEtlBase
+from elketlbase import ElkEtlBase
 
 
 class ElkEtlApiServicos(ElkEtlBase):
