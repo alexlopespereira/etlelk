@@ -6,14 +6,14 @@ with open("README.md", "r") as fh:
 setup(
     name="etlelk",
     packages=['etlelk'],
-    version="0.0.3",
+    version="0.0.4",
     author="Alex Lopes Pereira",
     author_email="alexlopespereira@gmail.com",
     description="A small example package",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/alexlopespereira/etl_elk",
-    download_url="https://github.com/alexlopespereira/etl_elk/archive/0.0.3.tar.gz",
+    download_url="https://github.com/alexlopespereira/etl_elk/archive/0.0.4.tar.gz",
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
