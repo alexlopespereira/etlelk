@@ -22,7 +22,7 @@ class EtlBase:
         self.elk_settings = job_description['settings']
         self.job_description = job_description
         self.limit = limit
-        self.loaded = False
+        self.load_finished = False
         self.chunk_size = 500
         self.inconsistencies = set([])
         self.kf = KibanaFunctions(config)
