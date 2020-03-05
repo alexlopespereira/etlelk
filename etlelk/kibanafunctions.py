@@ -102,7 +102,8 @@ class KibanaFunctions:
             dest_index_pattern_id = self.els.get_object_id(self.config.KIBANA_DEST_URL, namespace, "index-pattern", j['index'])
             if not dest_index_pattern_id:
                 continue
-            filename = "objects_{0}{1}.ndjson".format(j['prefix'], datetime.today().strftime("%Y-%m-%d"))
+            filenames = [p for p in Path(path).rglob('*{0}*.ndjson'.format(j['prefix']))]
+            filename = filenames[0]
             with open(path + "/" + filename, "r") as fp:
                 data = fp.read()
                 jsonstr = "[{0}]".format(data.replace('}\n', '},')[:-1])
