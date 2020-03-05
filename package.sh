@@ -3,7 +3,7 @@
 tag=$1
 message=$2
 
-sed 's/TAG/$tag/g' ./setup_template.py > ./setup.py
+sed "s/TAG/$tag/g" ./setup_template.py > ./setup.py
 
 git commit . -m "$message"
 git tag $tag
