@@ -4,7 +4,7 @@ from etlelk.settings_generic import body_settings_generic
 
 
 class ConfigBase:
-    DEST_PATH = os.environ.get('DEST_PATH') or "."
+    KIBANA_SAVED_OBJECTS_PATH = os.environ.get('KIBANA_SAVED_OBJECTS_PATH') or "."
     KIBANA_HOST = os.environ.get('ES_HOST') or 'localhost'
     KIBANA_PORT = os.environ.get('ES_PORT') or '5601'
     ES_HOST = os.environ.get('ES_HOST') or 'localhost'

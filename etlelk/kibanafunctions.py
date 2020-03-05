@@ -96,7 +96,7 @@ class KibanaFunctions:
         Lê do sistema de arquivos e faz um upload no kibana de desenvolvimento
         :return:
         """
-        path = "../saved_objects"
+        path = self.config.KIBANA_SAVED_OBJECTS_PATH
         for j in self.config.INDEXES:
             namespace = j['namespace'] if 'namespace' in j else None
             dest_index_pattern_id = self.els.get_object_id(self.config.KIBANA_DEST_URL, namespace, "index-pattern", j['index'])
@@ -111,13 +111,12 @@ class KibanaFunctions:
                 self.uplaod_from_file(path + "/" + filename, self.config.KIBANA_DEST_URL, namespace,
                                           src_index_pattern_id=src_index_pattern_id, dest_index_pattern_id=dest_index_pattern_id)
 
-
     def upload_files(self):
         """
         Lê do sistema de arquivos e faz um upload no kibana de desenvolvimento
         :return:
         """
-        path = "../saved_objects"
+        path = self.config.KIBANA_SAVED_OBJECTS_PATH
         for j in self.config.INDEXES:
             filenames = [p for p in Path(path).rglob('*{0}*.ndjson'.format(j['prefix']))]
             namespace = j['namespace'] if 'namespace' in j else None
