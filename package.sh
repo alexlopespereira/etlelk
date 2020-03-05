@@ -2,7 +2,7 @@
 #Edit the version and the download_url from setup_template.py prior to executing this
 tag=$1
 message=$2
-
+rm ./dist/*.gz
 sed "s/TAG/$tag/g" ./setup_template.py > ./setup.py
 
 git commit . -m "$message"
