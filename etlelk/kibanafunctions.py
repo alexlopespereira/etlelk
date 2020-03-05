@@ -103,14 +103,16 @@ class KibanaFunctions:
             if not dest_index_pattern_id:
                 continue
             filenames = [p for p in Path(path).rglob('*{0}*.ndjson'.format(j['prefix']))]
+            if not filenames:
+                continue
             filename = filenames[0]
-            with open(path + "/" + filename, "r") as fp:
+            with open(filename, "r") as fp:
                 data = fp.read()
                 jsonstr = "[{0}]".format(data.replace('}\n', '},')[:-1])
                 jsondata = json.loads(jsonstr)
                 src_index_pattern_id = self.find_index_pattern_id(jsondata)
-                self.uplaod_from_file(path + "/" + filename, self.config.KIBANA_DEST_URL, namespace,
-                                          src_index_pattern_id=src_index_pattern_id, dest_index_pattern_id=dest_index_pattern_id)
+                self.uplaod_from_file(filename, self.config.KIBANA_DEST_URL, namespace,
+                                      src_index_pattern_id=src_index_pattern_id, dest_index_pattern_id=dest_index_pattern_id)
 
     def upload_files(self):
         """
@@ -120,6 +122,8 @@ class KibanaFunctions:
         path = self.config.KIBANA_SAVED_OBJECTS_PATH
         for j in self.config.INDEXES:
             filenames = [p for p in Path(path).rglob('*{0}*.ndjson'.format(j['prefix']))]
+            if not filenames:
+                continue
             namespace = j['namespace'] if 'namespace' in j else None
             self.uplaod_from_file(filenames[0], self.config.KIBANA_URL, namespace)
 
