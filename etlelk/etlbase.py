@@ -25,6 +25,7 @@ class EtlBase:
         self.load_finished = False
         self.chunk_size = 500
         self.inconsistencies = set([])
+        self.config = config
         self.kf = KibanaFunctions(config)
         if 'mappings' in self.elk_settings:
             self.elk_settings["mappings"]["properties"][job_description['date_field']] = {
