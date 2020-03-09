@@ -8,10 +8,9 @@ def run_etl_job(config, job_description):
     o.run(config.es, config.ES_URL)
 
 
-def run_all_etls(indexes):
-    for i in indexes:
+def run_all_etls(config):
+    for i in config.INDEXES:
         print(i)
-        run_etl_job(i)
-
+        run_etl_job(config, i)
 
 
