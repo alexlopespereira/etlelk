@@ -4,8 +4,7 @@ import requests
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 from pathlib import Path
 
-from etlelk.elasticsearchfunctions import ElasticsearchFunctions # import create_index_pattern, create_space, get_object_id, get_objects_from_search
-
+from etlelk.elasticsearchfunctions import ElasticsearchFunctions
 
 
 class KibanaFunctions:
@@ -16,12 +15,12 @@ class KibanaFunctions:
         self.session = requests.Session()
 
 
-    def uplaod_from_file(self, file, url, namespace, src_index_pattern_id=None, dest_index_pattern_id=None):
+    def uplaod_from_file(self, file, kibana_url, namespace, src_index_pattern_id=None, dest_index_pattern_id=None):
         """
         Faz upload de arquivo ndjson de objetos para o kibana
         :param path: caminho que contem o arquivo a ser enviado
         :param filename: nome do arquivo de objetos a ser enviado
-        :param url: URL do kibana para upload do arquivo de objetos.
+        :param kibana_url: URL do kibana para upload do arquivo de objetos.
         :param namespace: space de destino
         :param src_index_pattern_id: caso seja necessário, representa o index_pattern a ser substituido
         :param dest_index_pattern_id: caso seja necessário, representa o index_pattern que vai substituir o antigo
@@ -44,11 +43,11 @@ class KibanaFunctions:
         params = (('overwrite', 'true'),)
         self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
         if namespace:
-            created_space = self.els.create_space(url, namespace)
+            created_space = self.els.create_space(kibana_url, namespace)
             # print(created_space)
-            import_url = url + "/s/" + namespace + '/api/saved_objects/_import'
+            import_url = kibana_url + "/s/" + namespace + '/api/saved_objects/_import'
         else:
-            import_url = url + '/api/saved_objects/_import'
+            import_url = kibana_url + '/api/saved_objects/_import'
 
         response = self.session.post(import_url, headers=headers, params=params, data=multipart_data)
         if 'error' in response.text:
@@ -65,7 +64,7 @@ class KibanaFunctions:
         if 'namespace' in job:
             self.els.create_space(self.config.KIBANA_DEST_URL, job['namespace'])
         namespace = job['namespace'] if 'namespace' in job else None
-        objs = self.els.get_objects_from_search(self.config.KIBANA_URL, namespace, job['prefix'])
+        objs = self.get_objects_from_search(self.config.KIBANA_URL, namespace, job['prefix'])
         file = self.config.DEST_PATH + "/" + filename
         with open(file, "w") as text_file:
             for o in objs:
@@ -128,15 +127,15 @@ class KibanaFunctions:
             if result:
                 print("uploaded {0}".format(filenames[0]))
 
-    def is_dashboard_available(self, es_url, namespace, prefix):
+    def is_dashboard_available(self, kibana_url, namespace, prefix):
         """
         Retorna se existe algum dashboard de um determinado namespace especificado pelo prefixo
-        :param es_url:
+        :param kibana_url:
         :param namespace:
         :param prefix:
         :return:
         """
-        url = es_url + "/s/" + namespace + "/api/saved_objects/_find"
+        url = kibana_url + "/s/" + namespace + "/api/saved_objects/_find"
         params = (
             ('search', '{0}*'.format(prefix)),
             ('per_page', '1'),
@@ -156,3 +155,23 @@ class KibanaFunctions:
             return response.json()['total'] is not 0
         else:
             return False
+
+    def get_objects_from_search(self, kibana_url, namespace, prefix):
+        if namespace:
+            url = kibana_url + "/s/" + namespace + "/api/saved_objects/_find"
+        else:
+            url = kibana_url + "/api/saved_objects/_find"
+        params = (
+            ('search', '{0}*'.format(prefix)),
+            ('per_page', '50'),
+            ('page', '1'),
+            ('type', ['config', 'visualization', 'search', 'dashboard', 'index-pattern']),
+            ('sort_field', 'type'),
+        )
+        headers = {'Content-Type': 'application/json'}
+        self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
+        response = self.session.get(url, headers=headers, params=params)
+        if not response.ok:
+            raise ValueError
+        response = response.json()
+        return response['saved_objects']
