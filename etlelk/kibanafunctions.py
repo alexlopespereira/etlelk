@@ -45,7 +45,7 @@ class KibanaFunctions:
         self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
         if namespace:
             created_space = self.els.create_space(url, namespace)
-            print(created_space)
+            # print(created_space)
             import_url = url + "/s/" + namespace + '/api/saved_objects/_import'
         else:
             import_url = url + '/api/saved_objects/_import'
@@ -124,7 +124,9 @@ class KibanaFunctions:
             if not filenames:
                 continue
             namespace = j['namespace'] if 'namespace' in j else None
-            self.uplaod_from_file(filenames[0], self.config.KIBANA_URL, namespace)
+            result = self.uplaod_from_file(filenames[0], self.config.KIBANA_URL, namespace)
+            if result:
+                print("uploaded {0}".format(filenames[0]))
 
     def is_dashboard_available(self, es_url, namespace, prefix):
         """
