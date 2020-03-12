@@ -38,12 +38,10 @@ class ConfigBase:
     
     # job_sourcecode = {"index": ES_SOURCECODE_INDEX, "settings": body_settings_sourcecode, "prefix": "SOURCECODE__",
     #                  "date_field": "date_modified", "description": "Source Code", "module_name": "ElkEtlPythonCode",
-    #                  "class_name": "ElkEtlPythonCode", "kibana_date_format": "yyyy-MM-dd HH:mm:ss",
-    #                  "src_path": "../data"}
+    #                  "class_name": "ElkEtlPythonCode", "src_path": "../data"}
     
     job_tagcloud = {"index": ES_TAGCLOUD_INDEX, "settings": body_settings_generic, "prefix": "TAGCLOUD__",
                      "description": "Tag Cloud", "module_name": "ElkEtlTagCloud",
-                     "class_name": "ElkEtlTagCloud", "kibana_date_format": "yyyy-MM-dd HH:mm:ss",
-                     "es": es}
+                     "class_name": "ElkEtlTagCloud", "es": es}
     
     INDEXES = [job_tagcloud]

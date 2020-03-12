@@ -27,18 +27,6 @@ class EtlBase:
         self.inconsistencies = set([])
         self.config = config
         self.kf = KibanaFunctions(config)
-        if 'mappings' in self.elk_settings:
-            self.elk_settings["mappings"]["properties"][job_description['date_field']] = {
-                    "type": "date",
-                    "format": job_description['kibana_date_format']
-                }
-        else:
-            if 'date_field' in job_description:
-                self.elk_settings["mappings"] = {"properties": {
-                    job_description['date_field']: {
-                        "type": "date",
-                        "format": job_description['kibana_date_format']
-                    }}}
 
     @abstractmethod
     def connect(self):
