@@ -37,7 +37,7 @@ class KibanaFunctions:
             with open(file, "w") as fp:
                 fp.write(data)
 
-        multipart_data = MultipartEncoder(fields={'file': (file, open(file, 'rb'), 'text/plain')})
+        multipart_data = MultipartEncoder(fields={'file': (file.name, open(file, 'rb'), 'text/plain')})
         headers = {
             'Accept': '*/*',
             'kbn-xsrf': 'true',
