@@ -1,7 +1,6 @@
 import json
 from datetime import datetime
 import requests
-# from config_elastic import config
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 from pathlib import Path
 
@@ -79,7 +78,7 @@ class KibanaFunctions:
         for d in data:
             if d['references'] and d['references'][0]['type'] == 'index-pattern':
                 return d['references'][0]['id']
-            elif d["type"]=="index-pattern":
+            elif d["type"] == "index-pattern":
                 return d['id']
         return None
 

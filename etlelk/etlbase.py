@@ -89,10 +89,10 @@ class EtlBase:
         if existed_index == "CREATED":
             if job_description:
                 created_space = self.kf.els.create_space(kibana_url, job_description['namespace'])
-                self.kf.els.create_index_pattern(kibana_url, job_description['index-pattern'], job_description['namespace'], job_description['date_field'])
+                self.kf.els.create_index_pattern(kibana_url, job_description['index'], job_description['namespace'], job_description['date_field'])
             else:
                 created_space = self.kf.els.create_space(kibana_url, self.job_description['namespace'])
-                self.kf.els.create_index_pattern(kibana_url, self.job_description['index-pattern'], self.job_description['namespace'], self.job_description['date_field'])
+                self.kf.els.create_index_pattern(kibana_url, self.job_description['index'], self.job_description['namespace'], self.job_description['date_field'])
             return True
         else:
             return False
