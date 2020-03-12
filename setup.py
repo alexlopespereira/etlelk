@@ -3,13 +3,13 @@ from distutils.core import setup
 setup(
     name="etlelk",
     packages=['etlelk'],
-    version="0.0.19",
+    version="0.0.20",
     license="GNU Lesser General Public License v3.0",
     description="A small example package",
     author="Alex Lopes Pereira",
     author_email="alexlopespereira@gmail.com",
     url="https://github.com/alexlopespereira/etl_elk",
-    download_url="https://github.com/alexlopespereira/etl_elk/archive/0.0.19.tar.gz",
+    download_url="https://github.com/alexlopespereira/etl_elk/archive/0.0.20.tar.gz",
     keywords=['elasticsearch', 'ETL'],
     classifiers=[
         'Development Status :: 3 - Alpha',
