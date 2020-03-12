@@ -1,5 +1,4 @@
 #!/bin/bash
-#Edit the version and the download_url from setup_template.py prior to executing this
 tag=$1
 message=$2
 rm ./dist/*.gz
