@@ -2,10 +2,10 @@ import json
 from abc import abstractmethod
 from elasticsearch.helpers import bulk
 
-from kibanafunctions import KibanaFunctions
+from etlelk.kibanafunctions import KibanaFunctions
 
 
-class ElkEtlBase:
+class EtlBase:
     """
     Como usar esta classe:
     1) Implementar o metodo create_query. Este metodo deve levar em conta os parametros self.limit e self.offset para fazer cargas parciais, carregando uma janela de dados.
@@ -22,22 +22,11 @@ class ElkEtlBase:
         self.elk_settings = job_description['settings']
         self.job_description = job_description
         self.limit = limit
-        self.loaded = False
+        self.load_finished = False
         self.chunk_size = 500
         self.inconsistencies = set([])
+        self.config = config
         self.kf = KibanaFunctions(config)
-        if 'mappings' in self.elk_settings:
-            self.elk_settings["mappings"]["properties"][job_description['date_field']] = {
-                    "type": "date",
-                    "format": job_description['kibana_date_format']
-                }
-        else:
-            if 'date_field' in job_description:
-                self.elk_settings["mappings"] = {"properties": {
-                    job_description['date_field']: {
-                        "type": "date",
-                        "format": job_description['kibana_date_format']
-                    }}}
 
     @abstractmethod
     def connect(self):
@@ -100,10 +89,10 @@ class ElkEtlBase:
         if existed_index == "CREATED":
             if job_description:
                 created_space = self.kf.els.create_space(kibana_url, job_description['namespace'])
-                self.kf.els.create_index_pattern(kibana_url, job_description['index-pattern'], job_description['namespace'], job_description['date_field'])
+                self.kf.els.create_index_pattern(kibana_url, job_description['index'], job_description['namespace'], job_description['date_field'])
             else:
                 created_space = self.kf.els.create_space(kibana_url, self.job_description['namespace'])
-                self.kf.els.create_index_pattern(kibana_url, self.job_description['index-pattern'], self.job_description['namespace'], self.job_description['date_field'])
+                self.kf.els.create_index_pattern(kibana_url, self.job_description['index'], self.job_description['namespace'], self.job_description['date_field'])
             return True
         else:
             return False

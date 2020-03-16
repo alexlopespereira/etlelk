@@ -77,23 +77,7 @@ class ElasticsearchFunctions:
         else:
             return None
 
-    def get_objects_from_search(self, es_url, namespace, prefix):
-        if namespace:
-            url = es_url + "/s/" + namespace + "/api/saved_objects/_find"
-        else:
-            url = es_url + "/api/saved_objects/_find"
-        params = (
-            ('search', '{0}*'.format(prefix)),
-            ('per_page', '50'),
-            ('page', '1'),
-            ('type', ['config', 'visualization', 'search', 'dashboard', 'index-pattern']),
-            ('sort_field', 'type'),
-        )
-        headers = {'Content-Type': 'application/json'}
-        self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
-        response = self.session.get(url, headers=headers, params=params)
-        response = response.json()
-        return response['saved_objects']
+
 
     def get_index_pattern(self, url, namespace, id):
         headers = {

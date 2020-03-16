@@ -1,12 +1,10 @@
 import json
 from datetime import datetime
 import requests
-# from config_elastic import config
 from requests_toolbelt.multipart.encoder import MultipartEncoder
 from pathlib import Path
 
-from elasticsearchfunctions import ElasticsearchFunctions # import create_index_pattern, create_space, get_object_id, get_objects_from_search
-
+from etlelk.elasticsearchfunctions import ElasticsearchFunctions
 
 
 class KibanaFunctions:
@@ -17,12 +15,12 @@ class KibanaFunctions:
         self.session = requests.Session()
 
 
-    def uplaod_from_file(self, file, url, namespace, src_index_pattern_id=None, dest_index_pattern_id=None):
+    def uplaod_from_file(self, file, kibana_url, namespace, src_index_pattern_id=None, dest_index_pattern_id=None):
         """
         Faz upload de arquivo ndjson de objetos para o kibana
         :param path: caminho que contem o arquivo a ser enviado
         :param filename: nome do arquivo de objetos a ser enviado
-        :param url: URL do kibana para upload do arquivo de objetos.
+        :param kibana_url: URL do kibana para upload do arquivo de objetos.
         :param namespace: space de destino
         :param src_index_pattern_id: caso seja necessário, representa o index_pattern a ser substituido
         :param dest_index_pattern_id: caso seja necessário, representa o index_pattern que vai substituir o antigo
@@ -37,7 +35,7 @@ class KibanaFunctions:
             with open(file, "w") as fp:
                 fp.write(data)
 
-        multipart_data = MultipartEncoder(fields={'file': (file, open(file, 'rb'), 'text/plain')})
+        multipart_data = MultipartEncoder(fields={'file': (file.name, open(file, 'rb'), 'text/plain')})
         headers = {
             'Accept': '*/*',
             'kbn-xsrf': 'true',
@@ -45,11 +43,11 @@ class KibanaFunctions:
         params = (('overwrite', 'true'),)
         self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
         if namespace:
-            created_space = self.els.create_space(url, namespace)
-            print(created_space)
-            import_url = url + "/s/" + namespace + '/api/saved_objects/_import'
+            created_space = self.els.create_space(kibana_url, namespace)
+            # print(created_space)
+            import_url = kibana_url + "/s/" + namespace + '/api/saved_objects/_import'
         else:
-            import_url = url + '/api/saved_objects/_import'
+            import_url = kibana_url + '/api/saved_objects/_import'
 
         response = self.session.post(import_url, headers=headers, params=params, data=multipart_data)
         if 'error' in response.text:
@@ -66,7 +64,7 @@ class KibanaFunctions:
         if 'namespace' in job:
             self.els.create_space(self.config.KIBANA_DEST_URL, job['namespace'])
         namespace = job['namespace'] if 'namespace' in job else None
-        objs = self.els.get_objects_from_search(self.config.KIBANA_URL, namespace, job['prefix'])
+        objs = self.get_objects_from_search(self.config.KIBANA_URL, namespace, job['prefix'])
         file = self.config.DEST_PATH + "/" + filename
         with open(file, "w") as text_file:
             for o in objs:
@@ -79,7 +77,7 @@ class KibanaFunctions:
         for d in data:
             if d['references'] and d['references'][0]['type'] == 'index-pattern':
                 return d['references'][0]['id']
-            elif d["type"]=="index-pattern":
+            elif d["type"] == "index-pattern":
                 return d['id']
         return None
 
@@ -96,42 +94,48 @@ class KibanaFunctions:
         Lê do sistema de arquivos e faz um upload no kibana de desenvolvimento
         :return:
         """
-        path = "../saved_objects"
+        path = self.config.KIBANA_SAVED_OBJECTS_PATH
         for j in self.config.INDEXES:
             namespace = j['namespace'] if 'namespace' in j else None
             dest_index_pattern_id = self.els.get_object_id(self.config.KIBANA_DEST_URL, namespace, "index-pattern", j['index'])
             if not dest_index_pattern_id:
                 continue
-            filename = "objects_{0}{1}.ndjson".format(j['prefix'], datetime.today().strftime("%Y-%m-%d"))
-            with open(path + "/" + filename, "r") as fp:
+            filenames = [p for p in Path(path).rglob('*{0}*.ndjson'.format(j['prefix']))]
+            if not filenames:
+                continue
+            filename = filenames[0]
+            with open(filename, "r") as fp:
                 data = fp.read()
                 jsonstr = "[{0}]".format(data.replace('}\n', '},')[:-1])
                 jsondata = json.loads(jsonstr)
                 src_index_pattern_id = self.find_index_pattern_id(jsondata)
-                self.uplaod_from_file(path + "/" + filename, self.config.KIBANA_DEST_URL, namespace,
-                                          src_index_pattern_id=src_index_pattern_id, dest_index_pattern_id=dest_index_pattern_id)
-
+                self.uplaod_from_file(filename, self.config.KIBANA_DEST_URL, namespace,
+                                      src_index_pattern_id=src_index_pattern_id, dest_index_pattern_id=dest_index_pattern_id)
 
     def upload_files(self):
         """
         Lê do sistema de arquivos e faz um upload no kibana de desenvolvimento
         :return:
         """
-        path = "../saved_objects"
+        path = self.config.KIBANA_SAVED_OBJECTS_PATH
         for j in self.config.INDEXES:
             filenames = [p for p in Path(path).rglob('*{0}*.ndjson'.format(j['prefix']))]
+            if not filenames:
+                continue
             namespace = j['namespace'] if 'namespace' in j else None
-            self.uplaod_from_file(filenames[0], self.config.KIBANA_URL, namespace)
+            result = self.uplaod_from_file(filenames[0], self.config.KIBANA_URL, namespace)
+            if result:
+                print("uploaded {0}".format(filenames[0]))
 
-    def is_dashboard_available(self, es_url, namespace, prefix):
+    def is_dashboard_available(self, kibana_url, namespace, prefix):
         """
         Retorna se existe algum dashboard de um determinado namespace especificado pelo prefixo
-        :param es_url:
+        :param kibana_url:
         :param namespace:
         :param prefix:
         :return:
         """
-        url = es_url + "/s/" + namespace + "/api/saved_objects/_find"
+        url = kibana_url + "/s/" + namespace + "/api/saved_objects/_find"
         params = (
             ('search', '{0}*'.format(prefix)),
             ('per_page', '1'),
@@ -151,3 +155,23 @@ class KibanaFunctions:
             return response.json()['total'] is not 0
         else:
             return False
+
+    def get_objects_from_search(self, kibana_url, namespace, prefix):
+        if namespace:
+            url = kibana_url + "/s/" + namespace + "/api/saved_objects/_find"
+        else:
+            url = kibana_url + "/api/saved_objects/_find"
+        params = (
+            ('search', '{0}*'.format(prefix)),
+            ('per_page', '50'),
+            ('page', '1'),
+            ('type', ['config', 'visualization', 'search', 'dashboard', 'index-pattern']),
+            ('sort_field', 'type'),
+        )
+        headers = {'Content-Type': 'application/json'}
+        self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
+        response = self.session.get(url, headers=headers, params=params)
+        if not response.ok:
+            raise ValueError
+        response = response.json()
+        return response['saved_objects']
