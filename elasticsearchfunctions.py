@@ -115,7 +115,7 @@ class ElasticsearchFunctions:
         resav = esc.search(index=index, body=empty_query)
         return len(resav['hits']['hits']) > 0
 
-    def delete_from_day(esc, index, from_day):
+    def delete_from_day(self, esc, index, from_day):
 
         query = '''{
                       "query": {
