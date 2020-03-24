@@ -21,7 +21,7 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     install_requires=[
-        'bleach==3.1.1',
+        'bleach==3.1.2',
         'certifi==2019.9.11',
         'cffi==1.14.0',
         'chardet==3.0.4',
