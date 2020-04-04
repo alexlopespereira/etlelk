@@ -114,7 +114,7 @@ class EtlBase:
 
     def run(self, es, es_url):
         self.connect()
-        existed_index = self.check_or_create_index(es, es_url)
+        existed_index = self.check_or_create_index(es)
         if not existed_index:
             return False
         from_date = self.get_from_date(es)
