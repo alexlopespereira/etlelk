@@ -9,29 +9,14 @@ class ElasticsearchFunctions:
         self.session = requests.Session()
 
 
-    def check_or_create_index(self, es_url, index_name, settings):
-        url = es_url + "/" + index_name
-        self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
-        response = self.session.get(url, verify=False)
-        if response.status_code == 401:
-            print("Not authorize user: {0}, pass: {1}".format(self.config.ES_USER, self.config.ES_PASSWORD))
-            return None
-        response = response.json()
-
-        if 'error' in response:
-            headers = {'Content-Type': 'application/json'}
-            response = self.session.put(url, headers=headers, data=settings)
-
-            if response.status_code == 200:
-                data = '{"index.max_result_window" : "20000"}'
-                response = self.session.put(es_url + '/_settings', headers=headers, data=data)
-            else:
-                print(response.text)
-                raise ValueError
-
-            return "CREATED"
-        else:
+    def check_or_create_index(self, esc, index_name, settings):
+        response = esc.indices.exists(index_name)
+        if response is True:
             return "EXISTED"
+        else:
+            esc.indices.create(index_name, body=settings)
+            return "CREATED"
+
 
     def create_index_pattern(self, dest_es_url, index_patter_name, namespace, date_field):
         headers = {'Accept': '*/*', 'kbn-xsrf': 'true', 'Content-Type': 'application/json'}
@@ -76,8 +61,6 @@ class ElasticsearchFunctions:
             return response_json['saved_objects'][0]['id']
         else:
             return None
-
-
 
     def get_index_pattern(self, url, namespace, id):
         headers = {
