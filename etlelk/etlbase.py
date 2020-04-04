@@ -78,11 +78,11 @@ class EtlBase:
 
         return self.from_date
 
-    def check_or_create_index(self, elasticsearch_url, index=None):
+    def check_or_create_index(self, es, index=None):
         if index:
-            existed_index = self.kf.els.check_or_create_index(elasticsearch_url, index, json.dumps(self.elk_settings))
+            existed_index = self.kf.els.check_or_create_index(es, index, json.dumps(self.elk_settings))
         else:
-            existed_index = self.kf.els.check_or_create_index(elasticsearch_url, self.index, json.dumps(self.elk_settings))
+            existed_index = self.kf.els.check_or_create_index(es, self.index, json.dumps(self.elk_settings))
         return existed_index
 
     def create_index_pattern(self, existed_index, kibana_url, job_description=None):
@@ -114,7 +114,7 @@ class EtlBase:
 
     def run(self, es, es_url):
         self.connect()
-        existed_index = self.check_or_create_index(es_url)
+        existed_index = self.check_or_create_index(es, es_url)
         if not existed_index:
             return False
         from_date = self.get_from_date(es)
