@@ -8,7 +8,6 @@ class ElasticsearchFunctions:
         self.config = config
         self.session = requests.Session()
 
-
     def check_or_create_index(self, esc, index_name, settings):
         response = esc.indices.exists(index_name)
         if response is True:
@@ -16,7 +15,6 @@ class ElasticsearchFunctions:
         else:
             esc.indices.create(index_name, body=settings)
             return "CREATED"
-
 
     def create_index_pattern(self, dest_es_url, index_patter_name, namespace, date_field):
         headers = {'Accept': '*/*', 'kbn-xsrf': 'true', 'Content-Type': 'application/json'}
@@ -51,7 +49,7 @@ class ElasticsearchFunctions:
             ('search', name),
         )
         self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
-        response = self.session.get(url, params=params)
+        response = self.session.get(url, params=params, verify=False)
         if response.status_code != 200:
             print("{0}, {1}, {2}, {3}".format(response.status_code, self.config.ES_USER, self.config.ES_PASSWORD, url))
             return None

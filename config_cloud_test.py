@@ -41,4 +41,4 @@ class Config(ConfigBase):
                      "description": "Tag Cloud", "module_name": "ElkEtlTagCloud",
                      "class_name": "ElkEtlTagCloud", "es": es}
     
-    INDEXES = [job_tagcloud]
+    INDEXES = {'tagcloud': job_tagcloud}

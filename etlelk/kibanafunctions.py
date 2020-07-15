@@ -49,7 +49,7 @@ class KibanaFunctions:
         else:
             import_url = kibana_url + '/api/saved_objects/_import'
 
-        response = self.session.post(import_url, headers=headers, params=params, data=multipart_data)
+        response = self.session.post(import_url, headers=headers, params=params, data=multipart_data, verify=False)
         if 'error' in response.text:
             raise ImportError
         return True
@@ -86,7 +86,7 @@ class KibanaFunctions:
         salva no sistema de arquivos e opcionalnte copia do dev para a producao
         :return:
         """
-        for j in self.config.INDEXES:
+        for j in self.config.INDEXES.values():
             self.download_objects(j)
 
     def upload_files_replacing_index_id(self):
@@ -95,7 +95,7 @@ class KibanaFunctions:
         :return:
         """
         path = self.config.KIBANA_SAVED_OBJECTS_PATH
-        for j in self.config.INDEXES:
+        for j in self.config.INDEXES.values():
             namespace = j['namespace'] if 'namespace' in j else None
             dest_index_pattern_id = self.els.get_object_id(self.config.KIBANA_DEST_URL, namespace, "index-pattern", j['index'])
             if not dest_index_pattern_id:
@@ -118,7 +118,7 @@ class KibanaFunctions:
         :return:
         """
         path = self.config.KIBANA_SAVED_OBJECTS_PATH
-        for j in self.config.INDEXES:
+        for j in self.config.INDEXES.values():
             filenames = [p for p in Path(path).rglob('*{0}*.ndjson'.format(j['prefix']))]
             if not filenames:
                 continue
@@ -152,7 +152,7 @@ class KibanaFunctions:
             pass
             return None
         if response.ok:
-            return response.json()['total'] is not 0
+            return response.json()['total'] != 0
         else:
             return False
 

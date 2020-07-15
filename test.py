@@ -7,4 +7,4 @@ config = Config()
 kf = KibanaFunctions(config)
 # kf.els.delete_index(config.es, config.INDEXES[3]['index'])
 
-# kf.els.check_or_create_index(config.es, config.INDEXES[0]['index'], config.INDEXES[0]['settings'])
+# kf.els.check_or_create_index(config.es, config.INDEXES['apps']['index'], config.INDEXES['apps']['settings'])
