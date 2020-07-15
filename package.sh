@@ -1,4 +1,5 @@
 #!/bin/bash
+#Usage: ./package.sh 0.0.28 "melhorias incrementais"
 tag=$1
 message=$2
 rm ./dist/*.gz
