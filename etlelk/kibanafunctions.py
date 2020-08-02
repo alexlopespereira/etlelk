@@ -89,13 +89,15 @@ class KibanaFunctions:
         for j in self.config.INDEXES.values():
             self.download_objects(j)
 
-    def upload_files_replacing_index_id(self):
+    def upload_files_replacing_index_id(self, index=None):
         """
         Lê do sistema de arquivos e faz um upload no kibana de desenvolvimento
         :return:
         """
         path = self.config.KIBANA_SAVED_OBJECTS_PATH
         for j in self.config.INDEXES.values():
+            if index and j['index'] != index:
+                continue
             namespace = j['namespace'] if 'namespace' in j else None
             dest_index_pattern_id = self.els.get_object_id(self.config.KIBANA_DEST_URL, namespace, "index-pattern", j['index'])
             if not dest_index_pattern_id:
