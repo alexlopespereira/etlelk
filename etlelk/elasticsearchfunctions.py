@@ -80,17 +80,18 @@ class ElasticsearchFunctions:
         resav = esc.search(index=index, body=empty_query)
         return len(resav['hits']['hits']) > 0
 
-    def delete_from_day(self, esc, index, from_day):
+    def delete_from_day(self, esc, index, from_date, to_date):
 
         query = '''{
                       "query": {
                             "range" : {
                                 "updated" : {
-                                    "gte" : "%s"
+                                    "gte" : "%s",
+                                    "lte" : "%s"
                                 }
                             }
                         }
-                    }''' % (from_day)
+                    }'''% (from_date, to_date)
         result = esc.delete_by_query(index, query)
         return result
 
