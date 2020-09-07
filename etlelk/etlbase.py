@@ -42,7 +42,11 @@ class EtlBase:
 
         if 'id' in ans[0]:
             for a in ans:
-                doc = {"doc": a, "_id": a["id"], '_op_type': 'update', 'doc_as_upsert': True, '_index': self.index}
+                if 'routing' in a:
+                    routing = a.pop('routing')
+                    doc = {"doc": a, "_id": a["id"], '_op_type': 'update', 'doc_as_upsert': True, '_index': self.index, '_routing': routing}
+                else:
+                    doc = {"doc": a, "_id": a["id"], '_op_type': 'update', 'doc_as_upsert': True, '_index': self.index}
                 yield doc
         else:
             for doc in ans:
