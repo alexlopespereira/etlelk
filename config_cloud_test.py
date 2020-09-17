@@ -4,6 +4,8 @@ from elasticsearch import Elasticsearch
 from etlelk.configbase import ConfigBase
 from etlelk.settings_generic import body_settings_generic
 
+ES_CLOUD_ID = os.environ.get('ES_CLOUD_ID', '')
+
 
 class Config(ConfigBase):
     KIBANA_SAVED_OBJECTS_PATH = os.environ.get('KIBANA_SAVED_OBJECTS_PATH', ".")
@@ -32,4 +34,4 @@ class Config(ConfigBase):
                     "description": "Tag Cloud", "module_name": "ElkEtlTagCloud",
                     "class_name": "ElkEtlTagCloud", "es": es}
     
-    INDEXES = {'tagcloud': job_tagcloud}
+    INDEXES = [job_tagcloud]

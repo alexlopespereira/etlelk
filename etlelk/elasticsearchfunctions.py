@@ -1,14 +1,14 @@
 import requests
 
 
-
 class ElasticsearchFunctions:
 
     def __init__(self, config):
         self.config = config
         self.session = requests.Session()
 
-    def check_or_create_index(self, esc, index_name, settings):
+    @staticmethod
+    def check_or_create_index(esc, index_name, settings):
         response = esc.indices.exists(index_name)
         if response is True:
             return "EXISTED"
@@ -18,12 +18,10 @@ class ElasticsearchFunctions:
 
     def create_index_pattern(self, dest_es_url, index_patter_name, namespace, date_field):
         headers = {'Accept': '*/*', 'kbn-xsrf': 'true', 'Content-Type': 'application/json'}
-        data = '{"attributes":{"title":"' + index_patter_name + '","timeFieldName":"' + date_field + '"}}'
+        data = f'{{"attributes":{{"title":"{index_patter_name}","timeFieldName":"{date_field}"}}}}'
         self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
-        if namespace:
-            post_url = dest_es_url + "/s/" + namespace + "/api/saved_objects/index-pattern"
-        else:
-            post_url = dest_es_url + "/api/saved_objects/index-pattern"
+
+        post_url = f"{dest_es_url}{f'/s/{namespace}' if namespace else ''}/api/saved_objects/index-pattern"
 
         response = self.session.post(post_url, headers=headers, data=data)
         if response.status_code != 200:
@@ -32,19 +30,18 @@ class ElasticsearchFunctions:
 
     def create_space(self, url, namespace):
         headers = {'kbn-xsrf': 'true', 'Content-Type': 'application/json'}
-        data = '{"id": "' + namespace + '", "name": "' + namespace + '", "initials": "' + namespace.upper()[0:2] + '", "disabledFeatures":[]}'
+        data = f'{{"id": "{namespace}", "name": "{namespace}", "initials": "{namespace.upper()[0:2]}", ' \
+               f'"disabledFeatures":[]}}'
         self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
-        response = self.session.post(url + '/api/spaces/space', headers=headers, data=data)
+        response = self.session.post(f'{url}/api/spaces/space', headers=headers, data=data)
         return response == 200
 
-    def get_object_id(self, kib_url, namespace, type, name):
-        if namespace:
-            url = kib_url + "/s/" + namespace + "/api/saved_objects/_find"
-        else:
-            url = kib_url + "/api/saved_objects/_find"
+    def get_object_id(self, kib_url, namespace, type_str, name):
+
+        url = f"{kib_url}{f'/s/{namespace}' if namespace else ''}/api/saved_objects/_find"
 
         params = (
-            ('type', type),
+            ('type', type_str),
             ('search_fields', 'title'),
             ('search', name),
         )
@@ -60,27 +57,27 @@ class ElasticsearchFunctions:
         else:
             return None
 
-    def get_index_pattern(self, url, namespace, id):
+    def get_index_pattern(self, url, namespace, id_str):
         headers = {
             'Accept': '*/*',
             'Content-Type': 'application/json'
         }
-        data = '[{"id":"' + str(id) + '","type":"index-pattern"}]'
+        data = f'[{{"id":"{str(id_str)}","type":"index-pattern"}}]'
         self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
-        if namespace:
-            bulk_url = f'{url}/s/{namespace}/api/saved_objects/_bulk_get'
-        else:
-            bulk_url = f'{url}/api/saved_objects/_bulk_get'
+
+        bulk_url = f"{url}{f'/s/{namespace}' if namespace else ''}/api/saved_objects/_bulk_get"
 
         response = self.session.post(bulk_url, headers=headers, data=data)
         return response.json()
 
-    def check_index_not_empty(self, index, esc):
+    @staticmethod
+    def check_index_not_empty(index, esc):
         empty_query = {}
         resav = esc.search(index=index, body=empty_query)
         return len(resav['hits']['hits']) > 0
 
-    def delete_from_day(self, esc, index, from_date, to_date):
+    @staticmethod
+    def delete_from_day(esc, index, from_date, to_date):
 
         query = '''{
                       "query": {
@@ -91,9 +88,10 @@ class ElasticsearchFunctions:
                                 }
                             }
                         }
-                    }'''% (from_date, to_date)
+                    }''' % (from_date, to_date)
         result = esc.delete_by_query(index, query)
         return result
 
-    def delete_index(self, esc, index):
+    @staticmethod
+    def delete_index(esc, index):
         esc.indices.delete(index=index, ignore=[400, 404])
