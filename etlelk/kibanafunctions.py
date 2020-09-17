@@ -60,7 +60,7 @@ class KibanaFunctions:
         :param job:
         :return:
         """
-        filename = "objects_{0}{1}.ndjson".format(job['prefix'], datetime.today().date())
+        filename = f"objects_{job['prefix']}{datetime.today().date()}.ndjson"
         if 'namespace' in job:
             self.els.create_space(self.config.KIBANA_DEST_URL, job['namespace'])
         namespace = job['namespace'] if 'namespace' in job else None
@@ -102,7 +102,7 @@ class KibanaFunctions:
             dest_index_pattern_id = self.els.get_object_id(self.config.KIBANA_DEST_URL, namespace, "index-pattern", j['index'])
             if not dest_index_pattern_id:
                 continue
-            filenames = [p for p in Path(path).rglob('*{0}*.ndjson'.format(j['prefix']))]
+            filenames = [p for p in Path(path).rglob(f"*{j['prefix']}*.ndjson")]
             if not filenames:
                 continue
             filename = filenames[0]
@@ -121,13 +121,13 @@ class KibanaFunctions:
         """
         path = self.config.KIBANA_SAVED_OBJECTS_PATH
         for j in self.config.INDEXES.values():
-            filenames = [p for p in Path(path).rglob('*{0}*.ndjson'.format(j['prefix']))]
+            filenames = [p for p in Path(path).rglob(f"*{j['prefix']}*.ndjson")]
             if not filenames:
                 continue
             namespace = j['namespace'] if 'namespace' in j else None
             result = self.uplaod_from_file(filenames[0], self.config.KIBANA_URL, namespace)
             if result:
-                print("uploaded {0}".format(filenames[0]))
+                print(f"uploaded {filenames[0]}")
 
     def is_dashboard_available(self, kibana_url, namespace, prefix):
         """
@@ -139,7 +139,7 @@ class KibanaFunctions:
         """
         url = kibana_url + "/s/" + namespace + "/api/saved_objects/_find"
         params = (
-            ('search', '{0}*'.format(prefix)),
+            ('search', f'{prefix}*'),
             ('per_page', '1'),
             ('page', '1'),
             ('type', ['dashboard']),
@@ -164,7 +164,7 @@ class KibanaFunctions:
         else:
             url = kibana_url + "/api/saved_objects/_find"
         params = (
-            ('search', '{0}*'.format(prefix)),
+            ('search', f'{prefix}*'),
             ('per_page', '50'),
             ('page', '1'),
             ('type', ['config', 'visualization', 'search', 'dashboard', 'index-pattern']),
