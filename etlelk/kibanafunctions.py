@@ -14,12 +14,11 @@ class KibanaFunctions:
         self.els = ElasticsearchFunctions(config)
         self.session = requests.Session()
 
-
-    def uplaod_from_file(self, file, kibana_url, namespace, src_index_pattern_id=None, dest_index_pattern_id=None):
+    def upload_from_file(self, file, kibana_url, namespace, src_index_pattern_id=None, dest_index_pattern_id=None):
         """
         Faz upload de arquivo ndjson de objetos para o kibana
-        :param path: caminho que contem o arquivo a ser enviado
-        :param filename: nome do arquivo de objetos a ser enviado
+        # :param path: caminho que contem o arquivo a ser enviado
+        :param file: nome do arquivo de objetos a ser enviado
         :param kibana_url: URL do kibana para upload do arquivo de objetos.
         :param namespace: space de destino
         :param src_index_pattern_id: caso seja necessário, representa o index_pattern a ser substituido
@@ -42,12 +41,13 @@ class KibanaFunctions:
             'Content-Type': multipart_data.content_type}
         params = (('overwrite', 'true'),)
         self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
+
         if namespace:
             created_space = self.els.create_space(kibana_url, namespace)
-            # print(created_space)
-            import_url = kibana_url + "/s/" + namespace + '/api/saved_objects/_import'
-        else:
-            import_url = kibana_url + '/api/saved_objects/_import'
+            if not created_space:
+                print(f"Failed to create namespace '{namespace}'")
+
+        import_url = f"{kibana_url}{f'/s/{namespace}' if namespace else ''}/api/saved_objects/_import"
 
         response = self.session.post(import_url, headers=headers, params=params, data=multipart_data, verify=False)
         if 'error' in response.text:
@@ -65,15 +65,16 @@ class KibanaFunctions:
             self.els.create_space(self.config.KIBANA_DEST_URL, job['namespace'])
         namespace = job['namespace'] if 'namespace' in job else None
         objs = self.get_objects_from_search(self.config.KIBANA_URL, namespace, job['prefix'])
-        file = self.config.DEST_PATH + "/" + filename
+        file = f"{self.config.DEST_PATH}/{filename}"
         with open(file, "w") as text_file:
             for o in objs:
-                jsonstr = json.dumps(o) + "\n"
+                jsonstr = f"{json.dumps(o)}\n"
                 text_file.write(jsonstr)
 
         # return self.uplaod_from_file(file, self.config.KIBANA_DEST_URL, namespace)
 
-    def find_index_pattern_id(self, data):
+    @staticmethod
+    def find_index_pattern_id(data):
         for d in data:
             if d['references'] and d['references'][0]['type'] == 'index-pattern':
                 return d['references'][0]['id']
@@ -99,7 +100,8 @@ class KibanaFunctions:
             if index and j['index'] != index:
                 continue
             namespace = j['namespace'] if 'namespace' in j else None
-            dest_index_pattern_id = self.els.get_object_id(self.config.KIBANA_DEST_URL, namespace, "index-pattern", j['index'])
+            dest_index_pattern_id = self.els.get_object_id(self.config.KIBANA_DEST_URL, namespace, "index-pattern",
+                                                           j['index'])
             if not dest_index_pattern_id:
                 continue
             filenames = [p for p in Path(path).rglob(f"*{j['prefix']}*.ndjson")]
@@ -108,11 +110,13 @@ class KibanaFunctions:
             filename = filenames[0]
             with open(filename, "r") as fp:
                 data = fp.read()
+                # jsonstr = f"[{data.replace('}' + chr(10), '},')[:-1]}]"
                 jsonstr = "[{0}]".format(data.replace('}\n', '},')[:-1])
                 jsondata = json.loads(jsonstr)
                 src_index_pattern_id = self.find_index_pattern_id(jsondata)
-                self.uplaod_from_file(filename, self.config.KIBANA_DEST_URL, namespace,
-                                      src_index_pattern_id=src_index_pattern_id, dest_index_pattern_id=dest_index_pattern_id)
+                self.upload_from_file(filename, self.config.KIBANA_DEST_URL, namespace,
+                                      src_index_pattern_id=src_index_pattern_id,
+                                      dest_index_pattern_id=dest_index_pattern_id)
 
     def upload_files(self):
         """
@@ -125,7 +129,7 @@ class KibanaFunctions:
             if not filenames:
                 continue
             namespace = j['namespace'] if 'namespace' in j else None
-            result = self.uplaod_from_file(filenames[0], self.config.KIBANA_URL, namespace)
+            result = self.upload_from_file(filenames[0], self.config.KIBANA_URL, namespace)
             if result:
                 print(f"uploaded {filenames[0]}")
 
@@ -137,7 +141,9 @@ class KibanaFunctions:
         :param prefix:
         :return:
         """
-        url = kibana_url + "/s/" + namespace + "/api/saved_objects/_find"
+
+        url = f"{kibana_url}{f'/s/{namespace}' if namespace else ''}/api/saved_objects/_find"
+
         params = (
             ('search', f'{prefix}*'),
             ('per_page', '1'),
@@ -159,10 +165,9 @@ class KibanaFunctions:
             return False
 
     def get_objects_from_search(self, kibana_url, namespace, prefix):
-        if namespace:
-            url = kibana_url + "/s/" + namespace + "/api/saved_objects/_find"
-        else:
-            url = kibana_url + "/api/saved_objects/_find"
+
+        url = f"{kibana_url}{f'/s/{namespace}' if namespace else ''}/api/saved_objects/_find"
+
         params = (
             ('search', f'{prefix}*'),
             ('per_page', '50'),
