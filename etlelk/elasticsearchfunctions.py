@@ -27,7 +27,7 @@ class ElasticsearchFunctions:
 
         response = self.session.post(post_url, headers=headers, data=data)
         if response.status_code != 200:
-            print("error creating index {0} on {1}".format(index_patter_name, dest_es_url))
+            print(f"error creating index {index_patter_name} on {dest_es_url}")
             return
 
     def create_space(self, url, namespace):
@@ -51,7 +51,7 @@ class ElasticsearchFunctions:
         self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
         response = self.session.get(url, params=params, verify=False)
         if response.status_code != 200:
-            print("{0}, {1}, {2}, {3}".format(response.status_code, self.config.ES_USER, self.config.ES_PASSWORD, url))
+            print(f"{response.status_code}, {self.config.ES_USER}, {self.config.ES_PASSWORD}, {url}")
             return None
 
         response_json = response.json()
@@ -68,9 +68,9 @@ class ElasticsearchFunctions:
         data = '[{"id":"' + str(id) + '","type":"index-pattern"}]'
         self.session.auth = (self.config.ES_USER, self.config.ES_PASSWORD)
         if namespace:
-            bulk_url = '{0}/s/{1}/api/saved_objects/_bulk_get'.format(url, namespace)
+            bulk_url = f'{url}/s/{namespace}/api/saved_objects/_bulk_get'
         else:
-            bulk_url = '{0}/api/saved_objects/_bulk_get'.format(url)
+            bulk_url = f'{url}/api/saved_objects/_bulk_get'
 
         response = self.session.post(bulk_url, headers=headers, data=data)
         return response.json()
