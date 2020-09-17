@@ -18,6 +18,7 @@ class EtlBase:
         self.index = job_description['index']
         self.query = None
         self.connection = None
+        self.from_date = None
         self.offset = 0
         self.elk_settings = job_description['settings']
         self.job_description = job_description
@@ -44,7 +45,8 @@ class EtlBase:
             for a in ans:
                 if 'routing' in a:
                     routing = a.pop('routing')
-                    doc = {"doc": a, "_id": a["id"], '_op_type': 'update', 'doc_as_upsert': True, '_index': self.index, '_routing': routing}
+                    doc = {"doc": a, "_id": a["id"], '_op_type': 'update', 'doc_as_upsert': True, '_index': self.index,
+                           '_routing': routing}
                 else:
                     doc = {"doc": a, "_id": a["id"], '_op_type': 'update', 'doc_as_upsert': True, '_index': self.index}
                 yield doc
@@ -91,12 +93,15 @@ class EtlBase:
 
     def create_index_pattern(self, existed_index, kibana_url, job_description=None):
         if existed_index == "CREATED":
-            if job_description:
-                created_space = self.kf.els.create_space(kibana_url, job_description['namespace'])
-                self.kf.els.create_index_pattern(kibana_url, job_description['index'], job_description['namespace'], job_description['date_field'])
-            else:
-                created_space = self.kf.els.create_space(kibana_url, self.job_description['namespace'])
-                self.kf.els.create_index_pattern(kibana_url, self.job_description['index'], self.job_description['namespace'], self.job_description['date_field'])
+
+            job_description = job_description if job_description else self.job_description
+
+            created_space = self.kf.els.create_space(kibana_url, job_description['namespace'])
+            if not created_space:
+                print(f"Failed to create namespace '{job_description['namespace']}'")
+
+            self.kf.els.create_index_pattern(kibana_url, job_description['index'], job_description['namespace'],
+                                             job_description['date_field'])
             return True
         else:
             return False
@@ -127,4 +132,3 @@ class EtlBase:
         while self.offset >= 0:
             bulk(es, self.gendata(), chunk_size=self.chunk_size)
         self.report()
-

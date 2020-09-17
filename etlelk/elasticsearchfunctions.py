@@ -24,9 +24,12 @@ class ElasticsearchFunctions:
         post_url = f"{dest_es_url}{f'/s/{namespace}' if namespace else ''}/api/saved_objects/index-pattern"
 
         response = self.session.post(post_url, headers=headers, data=data)
-        if response.status_code != 200:
+
+        if response.status_code == 200:
+            return True
+        else:
             print(f"error creating index {index_patter_name} on {dest_es_url}")
-            return
+            return False
 
     def create_space(self, url, namespace):
         headers = {'kbn-xsrf': 'true', 'Content-Type': 'application/json'}
