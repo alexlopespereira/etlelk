@@ -11,4 +11,4 @@ def run_etl_job(config, job_description):
 def run_all_etls(config):
     for i in config.INDEXES:
         print(i)
-        run_etl_job(config, i)
+        run_etl_job(config, config.INDEXES[i])
