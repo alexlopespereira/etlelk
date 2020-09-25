@@ -1,4 +1,7 @@
+from time import sleep
+
 import requests
+from elasticsearch_dsl import UpdateByQuery
 
 
 class ElasticsearchFunctions:
@@ -98,3 +101,20 @@ class ElasticsearchFunctions:
     @staticmethod
     def delete_index(esc, index):
         esc.indices.delete(index=index, ignore=[400, 404])
+
+    @staticmethod
+    def run_update_by_query(self, query, index):
+
+        ubq = UpdateByQuery(using=self.config.es, index=index).update_from_dict(
+            query).params(request_timeout=100)
+        finished = False
+        count = 0
+        while not finished and count < 3:
+            try:
+                count += 1
+                ubq.execute()
+                finished = True
+            except Exception as e:
+                print(e)
+                sleep(10 * count)
+                pass
