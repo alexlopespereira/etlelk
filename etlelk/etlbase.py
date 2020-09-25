@@ -115,6 +115,14 @@ class EtlBase:
         pass
 
     @abstractmethod
+    def update_by_query(self):
+        """
+        For post processing purposes.
+        :return:
+        """
+        pass
+
+    @abstractmethod
     def create_query(self, from_date=None, date_field=None):
         pass
 
@@ -131,4 +139,5 @@ class EtlBase:
         self.offset = 0
         while self.offset >= 0:
             bulk(es, self.gendata(), chunk_size=self.chunk_size)
+        self.update_by_query()
         self.report()
