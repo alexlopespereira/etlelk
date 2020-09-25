@@ -103,9 +103,9 @@ class ElasticsearchFunctions:
         esc.indices.delete(index=index, ignore=[400, 404])
 
     @staticmethod
-    def run_update_by_query(self, query, index):
+    def run_update_by_query(esc, query, index):
 
-        ubq = UpdateByQuery(using=self.config.es, index=index).update_from_dict(
+        ubq = UpdateByQuery(using=esc, index=index).update_from_dict(
             query).params(request_timeout=100)
         finished = False
         count = 0
