@@ -112,7 +112,7 @@ class ElasticsearchFunctions:
         while not finished and count < 3:
             try:
                 count += 1
-                ubq.execute()
+                response = ubq.execute()
                 finished = True
             except Exception as e:
                 print(e)
