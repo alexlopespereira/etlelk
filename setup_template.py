@@ -30,6 +30,7 @@ setup(
         'cryptography==3.1',
         'docutils>=0.16',
         'elasticsearch==7.9.1',
+        'elasticsearch-dsl==7.3.0',
         'idna>=2.10',
         'importlib-metadata==1.7.0',
         'jeepney==0.4.3',
