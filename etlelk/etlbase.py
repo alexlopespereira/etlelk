@@ -11,7 +11,7 @@ class EtlBase:
     1) Implementar o metodo create_query. Este metodo deve levar em conta os parametros self.limit e self.offset para fazer cargas parciais, carregando uma janela de dados.
     2) Implementar o metodo load_results que deve extrair de alguma fonte os dados a serem carregados.
     Este metodo deve levar em conta os parametros self.limit e self.offset para fazer cargas parciais, carregando uma janela de dados.
-    3) Implementar o metodo parse_results que faz qualquer tratamento necessário e retorna um campo deve valor único chamado "id" dentro do dicionário de cada registro
+    3) Implementar o metodo parse_results que faz qualquer tratamento necessário e retorna um campo que deve ter o valor único chamado "id" dentro do dicionário de cada registro
     """
 
     def __init__(self, config, job_description, limit=100000):
