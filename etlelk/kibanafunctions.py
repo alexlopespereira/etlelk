@@ -145,7 +145,7 @@ class KibanaFunctions:
         url = f"{kibana_url}{f'/s/{namespace}' if namespace else ''}/api/saved_objects/_find"
 
         params = (
-            ('search', f'{prefix}*'),
+            ('search', f'{prefix}__*'),
             ('per_page', '1'),
             ('page', '1'),
             ('type', ['dashboard']),
@@ -169,7 +169,7 @@ class KibanaFunctions:
         url = f"{kibana_url}{f'/s/{namespace}' if namespace else ''}/api/saved_objects/_find"
 
         params = (
-            ('search', f'{prefix}*'),
+            ('search', f'{prefix}__*'),
             ('per_page', '50'),
             ('page', '1'),
             ('type', ['config', 'visualization', 'search', 'dashboard', 'index-pattern']),
