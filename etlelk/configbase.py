@@ -32,8 +32,10 @@ class ConfigBase:
     #                  "date_field": "date_modified", "description": "Source Code", "module_name": "ElkEtlPythonCode",
     #                  "class_name": "ElkEtlPythonCode", "src_path": "../data"}
     
-    job_tagcloud = {"index": ES_TAGCLOUD_INDEX, "settings": body_settings_generic, "prefix": "TAGCLOUD__",
-                    "description": "Tag Cloud", "module_name": "ElkEtlTagCloud",
-                    "class_name": "ElkEtlTagCloud", "es": es}
-    
+    job_tagcloud = {"index": ES_TAGCLOUD_INDEX, "settings": body_settings_generic,
+                    "namespace": "default",
+                    "module_name": "ElkEtlTagCloud", "class_name": "ElkEtlTagCloud", "es": es}
+
     INDEXES = {"job_tagcloud": job_tagcloud}
+    DASH_TAGCLOUD = {"index": ES_TAGCLOUD_INDEX, "prefix": ES_TAGCLOUD_INDEX.split("__")[0], "namespace": "default"}
+    DASHBOARDS = {'tagcloud': DASH_TAGCLOUD}

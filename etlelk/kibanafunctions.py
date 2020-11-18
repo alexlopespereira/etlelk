@@ -87,17 +87,17 @@ class KibanaFunctions:
         salva no sistema de arquivos e opcionalnte copia do dev para a producao
         :return:
         """
-        for j in self.config.INDEXES.values():
+        for j in self.config.DASHBOARDS.values():
             self.download_objects(j)
 
-    def upload_files_replacing_index_id(self, index=None):
+    def upload_files_replacing_index_id(self, prefix=None):
         """
         Lê do sistema de arquivos e faz um upload no kibana de desenvolvimento
         :return:
         """
         path = self.config.KIBANA_SAVED_OBJECTS_PATH
-        for j in self.config.INDEXES.values():
-            if index and j['index'] != index:
+        for j in self.config.DASHBOARDS.values():
+            if prefix and j['prefix'] != prefix:
                 continue
             namespace = j['namespace'] if 'namespace' in j else None
             dest_index_pattern_id = self.els.get_object_id(self.config.KIBANA_DEST_URL, namespace, "index-pattern",
@@ -124,7 +124,7 @@ class KibanaFunctions:
         :return:
         """
         path = self.config.KIBANA_SAVED_OBJECTS_PATH
-        for j in self.config.INDEXES.values():
+        for j in self.config.DASHBOARDS.values():
             filenames = [p for p in Path(path).rglob(f"*{j['prefix']}*.ndjson")]
             if not filenames:
                 continue
