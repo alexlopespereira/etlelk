@@ -111,7 +111,7 @@ class EtlBase:
         pass
 
     @abstractmethod
-    def load_results(self):
+    def load_results(self, inputdata=None):
         pass
 
     @abstractmethod
