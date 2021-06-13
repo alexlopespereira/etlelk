@@ -111,7 +111,7 @@ class EtlBase:
         pass
 
     @abstractmethod
-    def load_results(self, inputdata=None):
+    def load_results(self):
         pass
 
     @abstractmethod
@@ -141,3 +141,13 @@ class EtlBase:
             bulk(es, self.gendata(), chunk_size=self.chunk_size)
         self.update_by_query()
         self.report()
+
+    def run_once(self, es, es_url, offset=0):
+        self.connect()
+        existed_index = self.check_or_create_index(es)
+        if not existed_index:
+            return False
+        from_date = self.get_from_date(es)
+        self.offset = offset
+        self.create_query(from_date)
+        return self.load_results()
