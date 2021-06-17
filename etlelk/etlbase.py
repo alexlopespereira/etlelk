@@ -1,6 +1,7 @@
 import json
 from abc import abstractmethod
 from elasticsearch.helpers import bulk
+import pytz
 
 from etlelk.kibanafunctions import KibanaFunctions
 
@@ -15,6 +16,7 @@ class EtlBase:
     """
 
     def __init__(self, config, job_description, limit=100000):
+        self.local_time_zone = pytz.timezone("America/Sao_Paulo")
         self.index = job_description['index']
         self.query = None
         self.connection = None
@@ -123,31 +125,41 @@ class EtlBase:
         pass
 
     @abstractmethod
+    def post_processing(self):
+        """
+        For post processing purposes.
+        :return:
+        """
+        pass
+
+    @abstractmethod
     def create_query(self, from_date=None, date_field=None):
         pass
 
     def report(self):
         print(self.inconsistencies)
 
-    def run(self, es, es_url):
+    def run(self):
         self.connect()
-        existed_index = self.check_or_create_index(es)
+        existed_index = self.check_or_create_index(self.config.es)
         if not existed_index:
             return False
-        from_date = self.get_from_date(es)
+        from_date = self.get_from_date(self.config.es)
         self.create_query(from_date)
         self.offset = 0
         while self.offset >= 0:
-            bulk(es, self.gendata(), chunk_size=self.chunk_size)
+            bulk(self.config.es, self.gendata(), chunk_size=self.chunk_size)
         self.update_by_query()
+        self.post_processing()
         self.report()
 
-    def run_once(self, es, es_url, offset=0):
+    def run_once(self, offset=0):
         self.connect()
-        existed_index = self.check_or_create_index(es)
+        existed_index = self.check_or_create_index(self.config.es)
         if not existed_index:
             return False
-        from_date = self.get_from_date(es)
+        from_date = self.get_from_date(self.config.es)
         self.offset = offset
         self.create_query(from_date)
         return self.load_results()
+

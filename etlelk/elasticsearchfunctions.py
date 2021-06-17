@@ -19,6 +19,11 @@ class ElasticsearchFunctions:
             esc.indices.create(index_name, body=settings)
             return "CREATED"
 
+    def count_documents(self, esc, index_name):
+        esc.indices.refresh(index_name)
+        resp = esc.cat.count(index_name, params={"format": "json"})
+        return int(resp[0]['count'])
+
     def create_index_pattern(self, dest_es_url, index_patter_name, namespace, date_field):
         headers = {'Accept': '*/*', 'kbn-xsrf': 'true', 'Content-Type': 'application/json'}
         data = f'{{"attributes":{{"title":"{index_patter_name}","timeFieldName":"{date_field}"}}}}'
@@ -83,18 +88,17 @@ class ElasticsearchFunctions:
         return len(resav['hits']['hits']) > 0
 
     @staticmethod
-    def delete_from_day(esc, index, from_date, to_date):
-
+    def delete_from_day(esc, index, from_date, to_date, field="updated"):
         query = '''{
                       "query": {
                             "range" : {
-                                "updated" : {
+                                "%s" : {
                                     "gte" : "%s",
                                     "lte" : "%s"
                                 }
                             }
                         }
-                    }''' % (from_date, to_date)
+                    }''' % (field, from_date, to_date)
         result = esc.delete_by_query(index, query)
         return result
 
