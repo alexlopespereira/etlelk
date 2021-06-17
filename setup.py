@@ -23,7 +23,7 @@ setup(
         'Programming Language :: Python :: 3.8',
     ],
     install_requires=[
-        'bleach==3.2.0',
+        'bleach==3.3.0',
         'certifi>=2020.6.20',
         'cffi==1.14.3',
         'chardet==3.0.4',
